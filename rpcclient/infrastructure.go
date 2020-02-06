@@ -1270,6 +1270,7 @@ func New(config *ConnConfig, ntfnHandlers *NotificationHandlers) (*Client, error
 			var err error
 			wsConn, err = dial(config)
 			if err != nil {
+				fmt.Println("unable to connect ws", err.Error())
 				return nil, err
 			}
 			start = true
