@@ -150,7 +150,7 @@ func (n *nodeConfig) rpcConnConfig() rpc.ConnConfig {
 		Pass:                 n.rpcPass,
 		Certificates:         n.certificates,
 		DisableAutoReconnect: true,
-		HTTPPostMode: true,
+		DisableTLS: true,
 	}
 }
 
