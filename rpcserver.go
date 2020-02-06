@@ -30,6 +30,7 @@ import (
 	"github.com/btcsuite/btcd/blockchain"
 	"github.com/btcsuite/btcd/blockchain/indexers"
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/database"
@@ -41,7 +42,6 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/websocket"
-	"github.com/paxosglobal/btcd/btcjson"
 )
 
 // API version constants
@@ -1082,13 +1082,13 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		}
 	}
 
-	// When the verbosity value set to 0, simply return the serialized block
+	// When the verbose flag isn't set, simply return the serialized block
 	// as a hex-encoded string.
-	if *c.Verbosity == 0 {
+	if c.Verbose != nil && !*c.Verbose {
 		return hex.EncodeToString(blkBytes), nil
 	}
 
-	// Generate the JSON object and return it.
+	// The verbose flag is set, so generate the JSON object and return it.
 
 	// Deserialize the block.
 	blk, err := btcutil.NewBlockFromBytes(blkBytes)
@@ -1117,12 +1117,9 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		nextHashString = nextHash.String()
 	}
 
-	var (
-		blockReply  interface{}
-		params      = s.cfg.ChainParams
-		blockHeader = &blk.MsgBlock().Header
-	)
-	baseBlockReply := &btcjson.GetBlockBaseVerboseResult{
+	params := s.cfg.ChainParams
+	blockHeader := &blk.MsgBlock().Header
+	blockReply := btcjson.GetBlockVerboseResult{
 		Hash:          c.Hash,
 		Version:       blockHeader.Version,
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
@@ -1140,19 +1137,14 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		NextHash:      nextHashString,
 	}
 
-	// If verbose level does not match 0 or 1
-	// we can consider it 2 (current bitcoin core behavior)
-	if *c.Verbosity == 1 {
+	if c.VerboseTx == nil || !*c.VerboseTx {
 		transactions := blk.Transactions()
 		txNames := make([]string, len(transactions))
 		for i, tx := range transactions {
 			txNames[i] = tx.Hash().String()
 		}
 
-		blockReply = btcjson.GetBlockVerboseResult{
-			GetBlockBaseVerboseResult: baseBlockReply,
-			Tx:                        txNames,
-		}
+		blockReply.Tx = txNames
 	} else {
 		txns := blk.Transactions()
 		rawTxns := make([]btcjson.TxRawResult, len(txns))
@@ -1165,11 +1157,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 			}
 			rawTxns[i] = *rawTxn
 		}
-
-		blockReply = btcjson.GetBlockVerboseTxResult{
-			GetBlockBaseVerboseResult: baseBlockReply,
-			Tx:                        rawTxns,
-		}
+		blockReply.RawTx = rawTxns
 	}
 
 	return blockReply, nil
