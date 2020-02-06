@@ -102,6 +102,7 @@ func New(activeNet *chaincfg.Params, handlers *rpcclient.NotificationHandlers,
 
 	harnessStateMtx.Lock()
 	defer harnessStateMtx.Unlock()
+	fmt.Println("new rpc harness")
 
 	// Add a flag for the appropriate network type based on the provided
 	// chain params.
