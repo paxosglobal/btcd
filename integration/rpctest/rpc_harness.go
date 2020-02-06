@@ -315,6 +315,7 @@ func (h *Harness) connectRPCClient() error {
 	for i := 0; i < h.maxConnRetries; i++ {
 		if client, err = rpcclient.New(&rpcConf, h.handlers); err != nil {
 			time.Sleep(time.Duration(i) * 50 * time.Millisecond)
+			fmt.Println("error connecting via RPC", err.Error())
 			continue
 		}
 		break

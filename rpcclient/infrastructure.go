@@ -1262,6 +1262,7 @@ func New(config *ConnConfig, ntfnHandlers *NotificationHandlers) (*Client, error
 		var err error
 		httpClient, err = newHTTPClient(config)
 		if err != nil {
+			fmt.Println("unable to connect http", err.Error())
 			return nil, err
 		}
 	} else {
