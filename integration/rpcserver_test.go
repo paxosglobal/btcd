@@ -118,7 +118,7 @@ func TestMain(m *testing.M) {
 	// Initialize the primary mining node with a chain of length 125,
 	// providing 25 mature coinbases to allow spending from for testing
 	// purposes.
-	if err := primaryHarness.SetUp(true, 25); err != nil {
+	if err := primaryHarness.SetUp(true, 25, defaultConnRetries); err != nil {
 		fmt.Println("unable to setup test chain: ", err)
 
 		// Even though the harness was not fully setup, it still needs
