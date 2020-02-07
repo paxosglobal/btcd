@@ -202,6 +202,7 @@ func newNode(config *nodeConfig, dataDir string) (*node, error) {
 // test case, or panic, it is important that the process be stopped via stop(),
 // otherwise, it will persist unless explicitly killed.
 func (n *node) start() error {
+	fmt.Println("starting rpc node")
 	if err := n.cmd.Start(); err != nil {
 		return err
 	}
@@ -221,6 +222,7 @@ func (n *node) start() error {
 		return err
 	}
 
+	fmt.Println("created pid file", n.cmd.Process.Pid)
 	return nil
 }
 
@@ -237,6 +239,7 @@ func (n *node) stop() error {
 	if runtime.GOOS == "windows" {
 		return n.cmd.Process.Signal(os.Kill)
 	}
+	fmt.Println("signalling to interrupt the process")
 	return n.cmd.Process.Signal(os.Interrupt)
 }
 
@@ -246,6 +249,7 @@ func (n *node) stop() error {
 func (n *node) cleanup() error {
 	if n.pidFile != "" {
 		if err := os.Remove(n.pidFile); err != nil {
+			fmt.Printf("unable to remove pid file %s %v\n", n.pidFile, err)
 			log.Printf("unable to remove file %s: %v", n.pidFile,
 				err)
 		}

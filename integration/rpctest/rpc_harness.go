@@ -274,6 +274,7 @@ func (h *Harness) SetUp(createTestChain bool, numMatureOutputs uint32, connRetri
 //
 // This function MUST be called with the harness state mutex held (for writes).
 func (h *Harness) tearDown() error {
+	fmt.Println("tearing down rpc node")
 	if h.Node != nil {
 		h.Node.Shutdown()
 	}
