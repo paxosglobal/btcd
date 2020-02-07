@@ -222,6 +222,7 @@ func (h *Harness) SetUp(createTestChain bool, numMatureOutputs uint32, connRetri
 		return err
 	}
 	if err := h.connectRPCClient(connRetries); err != nil {
+		fmt.Println("process state", h.node.cmd.ProcessState.String())
 		return err
 	}
 

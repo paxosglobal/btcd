@@ -206,6 +206,11 @@ func (n *node) start() error {
 	if err := n.cmd.Start(); err != nil {
 		return err
 	}
+	foundP, err := os.FindProcess(n.cmd.Process.Pid)
+	if err != nil {
+		return err
+	}
+	fmt.Println("found p", foundP)
 
 	pid, err := os.Create(filepath.Join(n.dataDir,
 		fmt.Sprintf("%s.pid", n.config)))
@@ -222,7 +227,8 @@ func (n *node) start() error {
 		return err
 	}
 
-	fmt.Println("created pid file", n.cmd.Process.Pid)
+	fmt.Println("created pid file", n.cmd.Process.Pid, filepath.Join(n.dataDir,
+		fmt.Sprintf("%s.pid", n.config)))
 	return nil
 }
 

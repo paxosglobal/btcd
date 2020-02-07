@@ -1296,6 +1296,7 @@ func New(config *ConnConfig, ntfnHandlers *NotificationHandlers) (*Client, error
 		log.Infof("Established connection to RPC server %s",
 			config.Host)
 		close(connEstablished)
+		fmt.Println("starting ws client")
 		client.start()
 		if !client.config.HTTPPostMode && !client.config.DisableAutoReconnect {
 			client.wg.Add(1)
