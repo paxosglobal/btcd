@@ -492,6 +492,7 @@ func generateListeningAddresses() (string, string) {
 
 	p2p := net.JoinHostPort(localhost, portString(minPeerPort, maxPeerPort))
 	rpc := net.JoinHostPort(localhost, portString(minRPCPort, maxRPCPort))
+	fmt.Println("using ports", p2p, rpc, processID)
 	return p2p, rpc
 }
 
