@@ -1219,6 +1219,7 @@ func dial(config *ConnConfig) (*websocket.Conn, error) {
 	url := fmt.Sprintf("%s://%s/%s", scheme, config.Host, config.Endpoint)
 	wsConn, resp, err := dialer.Dial(url, requestHeader)
 	if err != nil {
+		fmt.Println("error connecting to", url, err.Error())
 		if err != websocket.ErrBadHandshake || resp == nil {
 			return nil, err
 		}
