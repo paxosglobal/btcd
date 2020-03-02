@@ -1225,9 +1225,7 @@ func dial(config *ConnConfig) (*websocket.Conn, error) {
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err2 := cmd.Run()
-		if err2 != nil {
-			fmt.Printf("ps: %q\n", out.String(), err2)
-		}
+		fmt.Printf("ps: %q\n", out.String(), err2)
 
 		if err != websocket.ErrBadHandshake || resp == nil {
 			return nil, err
