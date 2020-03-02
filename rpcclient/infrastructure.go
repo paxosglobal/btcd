@@ -1221,11 +1221,11 @@ func dial(config *ConnConfig) (*websocket.Conn, error) {
 	wsConn, resp, err := dialer.Dial(url, requestHeader)
 	if err != nil {
 		fmt.Println("error connecting to", url, err.Error(), resp)
-		cmd := exec.Command("/bin/ps", "-ef")
+		cmd := exec.Command("/bin/netstat", "-ntlp")
 		var out bytes.Buffer
 		cmd.Stdout = &out
-		err2 := cmd.Run()
-		fmt.Printf("ps: %q\n", out.String(), err2)
+		cmd.Run()
+		fmt.Printf("netstat: %q\n", out.String())
 
 		if err != websocket.ErrBadHandshake || resp == nil {
 			return nil, err
