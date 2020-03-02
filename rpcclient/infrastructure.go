@@ -19,6 +19,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -1219,7 +1220,13 @@ func dial(config *ConnConfig) (*websocket.Conn, error) {
 	url := fmt.Sprintf("%s://%s/%s", scheme, config.Host, config.Endpoint)
 	wsConn, resp, err := dialer.Dial(url, requestHeader)
 	if err != nil {
-		fmt.Println("error connecting to", url, err.Error())
+		cmd := exec.Command("/bin/ps", "-ef")
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		err := cmd.Run()
+		fmt.Printf("ps: %q\n", out.String(), err)
+		fmt.Println("error connecting to", url, err.Error(), resp)
+
 		if err != websocket.ErrBadHandshake || resp == nil {
 			return nil, err
 		}
