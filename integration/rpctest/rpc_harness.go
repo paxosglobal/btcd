@@ -34,6 +34,8 @@ const (
 	// BlockVersion is the default block version used when generating
 	// blocks.
 	BlockVersion = 4
+
+	defaultConnRetries = 20
 )
 
 var (
@@ -213,13 +215,14 @@ func New(activeNet *chaincfg.Params, handlers *rpcclient.NotificationHandlers,
 //
 // NOTE: This method and TearDown should always be called from the same
 // goroutine as they are not concurrent safe.
-func (h *Harness) SetUp(createTestChain bool, numMatureOutputs uint32) error {
+func (h *Harness) SetUp(createTestChain bool, numMatureOutputs uint32, connRetries int) error {
 	// Start the btcd node itself. This spawns a new process which will be
 	// managed
 	if err := h.node.start(); err != nil {
 		return err
 	}
-	if err := h.connectRPCClient(); err != nil {
+	if err := h.connectRPCClient(connRetries); err != nil {
+		fmt.Println("process state", h.node.cmd.ProcessState.String())
 		return err
 	}
 
@@ -272,6 +275,7 @@ func (h *Harness) SetUp(createTestChain bool, numMatureOutputs uint32) error {
 //
 // This function MUST be called with the harness state mutex held (for writes).
 func (h *Harness) tearDown() error {
+	fmt.Println("tearing down rpc node")
 	if h.Node != nil {
 		h.Node.Shutdown()
 	}
@@ -307,14 +311,15 @@ func (h *Harness) TearDown() error {
 // the time between subsequent attempts. If after h.maxConnRetries attempts,
 // we're not able to establish a connection, this function returns with an
 // error.
-func (h *Harness) connectRPCClient() error {
+func (h *Harness) connectRPCClient(connRetries int) error {
 	var client *rpcclient.Client
 	var err error
 
 	rpcConf := h.node.config.rpcConnConfig()
-	for i := 0; i < h.maxConnRetries; i++ {
+	for i := 0; i < connRetries; i++ {
 		if client, err = rpcclient.New(&rpcConf, h.handlers); err != nil {
 			time.Sleep(time.Duration(i) * 50 * time.Millisecond)
+			fmt.Println("error connecting via RPC", err.Error())
 			continue
 		}
 		break
@@ -489,6 +494,7 @@ func generateListeningAddresses() (string, string) {
 
 	p2p := net.JoinHostPort(localhost, portString(minPeerPort, maxPeerPort))
 	rpc := net.JoinHostPort(localhost, portString(minRPCPort, maxRPCPort))
+	fmt.Println("using ports", p2p, rpc, processID)
 	return p2p, rpc
 }
 

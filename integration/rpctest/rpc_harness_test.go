@@ -109,7 +109,7 @@ func testConnectNode(r *Harness, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := harness.SetUp(false, 0); err != nil {
+	if err := harness.SetUp(false, 0, defaultConnRetries); err != nil {
 		t.Fatalf("unable to complete rpctest setup: %v", err)
 	}
 	defer harness.TearDown()
@@ -185,7 +185,7 @@ func testJoinMempools(r *Harness, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := harness.SetUp(false, 0); err != nil {
+	if err := harness.SetUp(false, 0, defaultConnRetries); err != nil {
 		t.Fatalf("unable to complete rpctest setup: %v", err)
 	}
 	defer harness.TearDown()
@@ -285,7 +285,7 @@ func testJoinBlocks(r *Harness, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := harness.SetUp(false, 0); err != nil {
+	if err := harness.SetUp(false, 0, defaultConnRetries); err != nil {
 		t.Fatalf("unable to complete rpctest setup: %v", err)
 	}
 	defer harness.TearDown()
@@ -473,7 +473,7 @@ func testMemWalletReorg(r *Harness, t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := harness.SetUp(true, 5); err != nil {
+	if err := harness.SetUp(true, 5, defaultConnRetries); err != nil {
 		t.Fatalf("unable to complete rpctest setup: %v", err)
 	}
 	defer harness.TearDown()
@@ -575,7 +575,7 @@ func TestMain(m *testing.M) {
 	// Initialize the main mining node with a chain of length 125,
 	// providing 25 mature coinbases to allow spending from for testing
 	// purposes.
-	if err = mainHarness.SetUp(true, numMatureOutputs); err != nil {
+	if err = mainHarness.SetUp(true, numMatureOutputs, defaultConnRetries); err != nil {
 		fmt.Println("unable to setup test chain: ", err)
 
 		// Even though the harness was not fully setup, it still needs

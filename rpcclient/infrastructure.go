@@ -1262,6 +1262,7 @@ func New(config *ConnConfig, ntfnHandlers *NotificationHandlers) (*Client, error
 		var err error
 		httpClient, err = newHTTPClient(config)
 		if err != nil {
+			fmt.Println("unable to connect http", err.Error())
 			return nil, err
 		}
 	} else {
@@ -1269,6 +1270,7 @@ func New(config *ConnConfig, ntfnHandlers *NotificationHandlers) (*Client, error
 			var err error
 			wsConn, err = dial(config)
 			if err != nil {
+				fmt.Println("unable to connect ws", err.Error())
 				return nil, err
 			}
 			start = true
@@ -1294,6 +1296,7 @@ func New(config *ConnConfig, ntfnHandlers *NotificationHandlers) (*Client, error
 		log.Infof("Established connection to RPC server %s",
 			config.Host)
 		close(connEstablished)
+		fmt.Println("starting ws client")
 		client.start()
 		if !client.config.HTTPPostMode && !client.config.DisableAutoReconnect {
 			client.wg.Add(1)
