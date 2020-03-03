@@ -5,12 +5,15 @@
 package rpctest
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -216,6 +219,18 @@ func New(activeNet *chaincfg.Params, handlers *rpcclient.NotificationHandlers,
 func (h *Harness) SetUp(createTestChain bool, numMatureOutputs uint32) error {
 	// Start the btcd node itself. This spawns a new process which will be
 	// managed
+	rpcCfg := h.node.config.rpcConnConfig()
+	port := strings.Split(rpcCfg.Host, ":")[1]
+	cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("/usr/bin/lsof -i :%s", port))
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Run()
+	// Check if anything is listening already on the port we want
+	fmt.Printf("lsof %s: %q\n", port, out.String())
+	if out.String() != "" {
+		fmt.Println("error! something listening on the port")
+	}
+
 	if err := h.node.start(); err != nil {
 		return err
 	}
