@@ -7,6 +7,7 @@ package rpctest
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -482,8 +483,10 @@ func generateListeningAddresses() (string, string) {
 	localhost := "127.0.0.1"
 
 	portString := func(minPort, maxPort int) string {
-		port := minPort + numTestInstances + ((20 * processID) %
-			(maxPort - minPort))
+		//port := minPort + numTestInstances + ((20 * processID) %
+		//	(maxPort - minPort))
+		rand.Seed(time.Now().UnixNano())
+		port := minPort + rand.Intn(maxPort - minPort)
 		return strconv.Itoa(port)
 	}
 
