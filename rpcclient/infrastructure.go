@@ -1361,7 +1361,6 @@ func newHTTPClient(config *ConnConfig) (*http.Client, error) {
 		TLSClientConfig: tlsConfig,
 	}
 
-	// Example timeout configuration
 	baseTransport.DialContext = (&net.Dialer{
 		Timeout:   3 * time.Second,
 		KeepAlive: 30 * time.Second,
