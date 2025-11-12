@@ -275,8 +275,8 @@ func (c *Client) GetBlockVerboseTx(blockHash *chainhash.Hash) (*btcjson.GetBlock
 // GetBlockCountAsync RPC invocation (or an applicable error).
 type FutureGetBlockCountResult chan *Response
 
-// Receive waits for the Response promised by the future and returns the height
-// of the most-work fully-validated chain. The genesis block has height 0.
+// Receive waits for the Response promised by the future and returns the number
+// of blocks in the longest block chain.
 func (r FutureGetBlockCountResult) Receive() (int64, error) {
 	res, err := ReceiveFuture(r)
 	if err != nil {
@@ -302,8 +302,7 @@ func (c *Client) GetBlockCountAsync() FutureGetBlockCountResult {
 	return c.SendCmd(cmd)
 }
 
-// GetBlockCount returns the height of the most-work fully-validated chain.
-// The genesis block has height 0.
+// GetBlockCount returns the number of blocks in the longest block chain.
 func (c *Client) GetBlockCount() (int64, error) {
 	return c.GetBlockCountAsync().Receive()
 }

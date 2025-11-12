@@ -231,7 +231,7 @@ func TestMustRegisterCmdPanic(t *testing.T) {
 	t.Parallel()
 
 	// Setup a defer to catch the expected panic to ensure it actually
-	// panicked.
+	// paniced.
 	defer func() {
 		if err := recover(); err == nil {
 			t.Error("MustRegisterCmd did not panic as expected")

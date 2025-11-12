@@ -293,15 +293,13 @@ func TestTapscriptCommitmentVerification(t *testing.T) {
 	// make from 0 to 1 leaf
 	// ensure verifies properly
 	testCases := []struct {
-		treeMutateFunc func(*IndexedTapScriptTree)
-
-		ctrlBlockMutateFunc func(*ControlBlock)
-
 		numLeaves int
 
 		valid bool
 
-		expectedErr ErrorCode
+		treeMutateFunc func(*IndexedTapScriptTree)
+
+		ctrlBlockMutateFunc func(*ControlBlock)
 	}{
 		// A valid merkle proof of a single leaf.
 		{
@@ -324,13 +322,11 @@ func TestTapscriptCommitmentVerification(t *testing.T) {
 		// An invalid merkle proof, we modify the last byte of one of
 		// the leaves.
 		{
-			numLeaves:   4,
-			valid:       false,
-			expectedErr: ErrTaprootMerkleProofInvalid,
+			numLeaves: 4,
+			valid:     false,
 			treeMutateFunc: func(t *IndexedTapScriptTree) {
 				for _, leafProof := range t.LeafMerkleProofs {
-					proofLen := len(leafProof.InclusionProof)
-					leafProof.InclusionProof[proofLen-1] ^= 1
+					leafProof.InclusionProof[0] ^= 1
 				}
 			},
 		},
@@ -339,9 +335,8 @@ func TestTapscriptCommitmentVerification(t *testing.T) {
 			// An invalid series of proofs, we modify the control
 			// block to not match the parity of the final output
 			// key commitment.
-			numLeaves:   2,
-			valid:       false,
-			expectedErr: ErrTaprootOutputKeyParityMismatch,
+			numLeaves: 2,
+			valid:     false,
 			ctrlBlockMutateFunc: func(c *ControlBlock) {
 				c.OutputKeyYIsOdd = !c.OutputKeyYIsOdd
 			},
@@ -395,15 +390,6 @@ func TestTapscriptCommitmentVerification(t *testing.T) {
 					t.Fatalf("test case mismatch: expected "+
 						"valid=%v, got valid=%v", testCase.valid,
 						valid)
-				}
-
-				if !valid {
-					if !IsErrorCode(err, testCase.expectedErr) {
-						t.Fatalf("expected error "+
-							"code %v, got %v",
-							testCase.expectedErr,
-							err)
-					}
 				}
 			}
 

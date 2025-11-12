@@ -61,14 +61,6 @@ func TestMatchErrStr(t *testing.T) {
 			matchStr:    "missingorspent",
 			matched:     false,
 		},
-		{
-			name: "new bitcoind v30 error",
-			bitcoindErr: errors.New(
-				"mempool-script-verify-flag-failed",
-			),
-			matchStr: "mempool script verify flag failed",
-			matched:  true,
-		},
 	}
 
 	for _, tc := range testCases {

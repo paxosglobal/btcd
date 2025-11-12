@@ -21,7 +21,6 @@ import (
 	"github.com/btcsuite/btcd/netsync"
 	"github.com/btcsuite/btcd/peer"
 	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/v2transport"
 
 	"github.com/btcsuite/btclog"
 	"github.com/jrick/logrotate/rotator"
@@ -70,7 +69,6 @@ var (
 	srvrLog = backendLog.Logger("SRVR")
 	syncLog = backendLog.Logger("SYNC")
 	txmpLog = backendLog.Logger("TXMP")
-	v2trLog = backendLog.Logger(v2transport.Subsystem)
 )
 
 // Initialize package-global logger variables.
@@ -86,27 +84,25 @@ func init() {
 	txscript.UseLogger(scrpLog)
 	netsync.UseLogger(syncLog)
 	mempool.UseLogger(txmpLog)
-	v2transport.UseLogger(v2trLog)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]btclog.Logger{
-	"ADXR":                adxrLog,
-	"AMGR":                amgrLog,
-	"CMGR":                cmgrLog,
-	"BCDB":                bcdbLog,
-	"BTCD":                btcdLog,
-	"CHAN":                chanLog,
-	"DISC":                discLog,
-	"INDX":                indxLog,
-	"MINR":                minrLog,
-	"PEER":                peerLog,
-	"RPCS":                rpcsLog,
-	"SCRP":                scrpLog,
-	"SRVR":                srvrLog,
-	"SYNC":                syncLog,
-	"TXMP":                txmpLog,
-	v2transport.Subsystem: v2trLog,
+	"ADXR": adxrLog,
+	"AMGR": amgrLog,
+	"CMGR": cmgrLog,
+	"BCDB": bcdbLog,
+	"BTCD": btcdLog,
+	"CHAN": chanLog,
+	"DISC": discLog,
+	"INDX": indxLog,
+	"MINR": minrLog,
+	"PEER": peerLog,
+	"RPCS": rpcsLog,
+	"SCRP": scrpLog,
+	"SRVR": srvrLog,
+	"SYNC": syncLog,
+	"TXMP": txmpLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

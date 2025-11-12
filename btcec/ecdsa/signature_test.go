@@ -479,7 +479,11 @@ func testSignCompact(t *testing.T, tag string, curve *btcec.KoblitzCurve,
 	priv, _ := btcec.NewPrivateKey()
 
 	hashed := []byte("testing")
-	sig := SignCompact(priv, hashed, isCompressed)
+	sig, err := SignCompact(priv, hashed, isCompressed)
+	if err != nil {
+		t.Errorf("%s: error signing: %s", tag, err)
+		return
+	}
 
 	pk, wasCompressed, err := RecoverCompact(sig, hashed)
 	if err != nil {
