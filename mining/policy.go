@@ -29,7 +29,7 @@ type Policy struct {
 	// generating a block template.
 	BlockMaxWeight uint32
 
-	// BlockMinSize is the minimum block size to be used when generating
+	// BlockMinWeight is the minimum block size to be used when generating
 	// a block template.
 	BlockMinSize uint32
 

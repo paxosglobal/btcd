@@ -165,6 +165,9 @@ func messageSummary(msg wire.Message) string {
 	case *wire.MsgPong:
 		// No summary - perhaps add nonce.
 
+	case *wire.MsgAlert:
+		// No summary.
+
 	case *wire.MsgMemPool:
 		// No summary.
 

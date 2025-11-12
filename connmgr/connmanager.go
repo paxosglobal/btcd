@@ -153,22 +153,6 @@ type registerPending struct {
 	done chan struct{}
 }
 
-// ConnOption is a functional option type for various connection operations.
-type ConnOption func(*connOptions)
-
-// connOptions holds the options for a connection operation.
-type connOptions struct {
-	triggerReconnect bool
-}
-
-// WithTriggerReconnect is a functional option that forces a reconnect attempt
-// after disconnection, even for non-permanent peers.
-func WithTriggerReconnect() ConnOption {
-	return func(opts *connOptions) {
-		opts.triggerReconnect = true
-	}
-}
-
 // handleConnected is used to queue a successful connection.
 type handleConnected struct {
 	c    *ConnReq
@@ -177,9 +161,8 @@ type handleConnected struct {
 
 // handleDisconnected is used to remove a connection.
 type handleDisconnected struct {
-	id               uint64
-	retry            bool
-	triggerReconnect bool
+	id    uint64
+	retry bool
 }
 
 // handleFailed is used to remove a pending connection.
@@ -207,11 +190,11 @@ type ConnManager struct {
 // retry duration. Otherwise, if required, it makes a new connection request.
 // After maxFailedConnectionAttempts new connections will be retried after the
 // configured retry duration.
-func (cm *ConnManager) handleFailedConn(c *ConnReq, triggerReconnect bool) {
+func (cm *ConnManager) handleFailedConn(c *ConnReq) {
 	if atomic.LoadInt32(&cm.stop) != 0 {
 		return
 	}
-	if c.Permanent || triggerReconnect {
+	if c.Permanent {
 		c.retryCount++
 		d := time.Duration(c.retryCount) * cm.cfg.RetryDuration
 		if d > maxRetryDuration {
@@ -313,6 +296,7 @@ out:
 					log.Debugf("Canceling: %v", connReq)
 					delete(pending, msg.id)
 					continue
+
 				}
 
 				// An existing connection was located, mark as
@@ -350,7 +334,7 @@ out:
 					log.Debugf("Reconnecting to %v",
 						connReq)
 					pending[msg.id] = connReq
-					cm.handleFailedConn(connReq, msg.triggerReconnect)
+					cm.handleFailedConn(connReq)
 				}
 
 			case handleFailed:
@@ -365,7 +349,7 @@ out:
 				connReq.updateState(ConnFailing)
 				log.Debugf("Failed to connect to %v: %v",
 					connReq, msg.err)
-				cm.handleFailedConn(connReq, false)
+				cm.handleFailedConn(connReq)
 			}
 
 		case <-cm.quit:
@@ -479,21 +463,14 @@ func (cm *ConnManager) Connect(c *ConnReq) {
 
 // Disconnect disconnects the connection corresponding to the given connection
 // id. If permanent, the connection will be retried with an increasing backoff
-// duration. Functional options can be used to modify behavior, such as forcing
-// a reconnect attempt via WithTriggerReconnect.
-func (cm *ConnManager) Disconnect(id uint64, options ...ConnOption) {
+// duration.
+func (cm *ConnManager) Disconnect(id uint64) {
 	if atomic.LoadInt32(&cm.stop) != 0 {
 		return
 	}
-	opts := connOptions{}
-	for _, option := range options {
-		option(&opts)
-	}
 
 	select {
-	case cm.requests <- handleDisconnected{
-		id: id, retry: true, triggerReconnect: opts.triggerReconnect,
-	}:
+	case cm.requests <- handleDisconnected{id, true}:
 	case <-cm.quit:
 	}
 }
@@ -509,7 +486,7 @@ func (cm *ConnManager) Remove(id uint64) {
 	}
 
 	select {
-	case cm.requests <- handleDisconnected{id: id, retry: false}:
+	case cm.requests <- handleDisconnected{id, false}:
 	case <-cm.quit:
 	}
 }

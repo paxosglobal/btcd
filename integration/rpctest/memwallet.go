@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"maps"
 	"sync"
 
 	"github.com/btcsuite/btcd/blockchain"
@@ -326,7 +325,9 @@ func (m *memWallet) unwindBlock(update *chainUpdate) {
 		delete(m.utxos, utxo)
 	}
 
-	maps.Copy(m.utxos, undo.utxosDestroyed)
+	for outPoint, utxo := range undo.utxosDestroyed {
+		m.utxos[outPoint] = utxo
+	}
 
 	delete(m.reorgJournal, update.blockHeight)
 }

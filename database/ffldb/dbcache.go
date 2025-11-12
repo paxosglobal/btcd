@@ -6,11 +6,8 @@ package ffldb
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"os"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/btcsuite/btcd/database/internal/treap"
@@ -514,12 +511,6 @@ func (c *dbCache) flush() error {
 
 	// Perform all leveldb updates using an atomic transaction.
 	if err := c.commitTreaps(cachedKeys, cachedRemove); err != nil {
-		if errors.Is(err, syscall.ENOSPC) {
-			log.Errorf("%v. Cannot save any more blocks "+
-				"due to the disk being full "+
-				"-- exiting", err)
-			os.Exit(1)
-		}
 		return err
 	}
 
@@ -578,12 +569,6 @@ func (c *dbCache) commitTx(tx *transaction) error {
 	// database if a flush is needed.
 	if c.needsFlush(tx) {
 		if err := c.flush(); err != nil {
-			if errors.Is(err, syscall.ENOSPC) {
-				log.Errorf("%v. Cannot save any more blocks "+
-					"due to the disk being full "+
-					"-- exiting", err)
-				os.Exit(1)
-			}
 			return err
 		}
 

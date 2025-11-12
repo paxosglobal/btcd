@@ -7,7 +7,6 @@ package mempool
 import (
 	"container/list"
 	"fmt"
-	"maps"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -106,7 +105,7 @@ type Config struct {
 	// This can be nil if the address index is not enabled.
 	AddrIndex *indexers.AddrIndex
 
-	// FeeEstimator provides a feeEstimator. If it is not nil, the mempool
+	// FeeEstimatator provides a feeEstimator. If it is not nil, the mempool
 	// records all new transactions it observes into the feeEstimator.
 	FeeEstimator *FeeEstimator
 }
@@ -697,7 +696,9 @@ func (mp *TxPool) txAncestors(tx *btcutil.Tx,
 			cache[*parent.Tx.Hash()] = moreAncestors
 		}
 
-		maps.Copy(ancestors, moreAncestors)
+		for hash, ancestor := range moreAncestors {
+			ancestors[hash] = ancestor
+		}
 	}
 
 	return ancestors
@@ -765,8 +766,9 @@ func (mp *TxPool) txConflicts(tx *btcutil.Tx) map[chainhash.Hash]*btcutil.Tx {
 			continue
 		}
 		conflicts[*conflict.Hash()] = conflict
-		descendants := mp.txDescendants(conflict, nil)
-		maps.Copy(conflicts, descendants)
+		for hash, descendant := range mp.txDescendants(conflict, nil) {
+			conflicts[hash] = descendant
+		}
 	}
 	return conflicts
 }

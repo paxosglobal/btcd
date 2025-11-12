@@ -3,6 +3,7 @@ package addrmgr
 import (
 	"math/rand"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -106,7 +107,11 @@ func TestAddrManagerSerialization(t *testing.T) {
 
 	// We'll start by creating our address manager backed by a temporary
 	// directory.
-	tempDir := t.TempDir()
+	tempDir, err := os.MkdirTemp("", "addrmgr")
+	if err != nil {
+		t.Fatalf("unable to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
 
 	addrMgr := New(tempDir, nil)
 
@@ -142,7 +147,11 @@ func TestAddrManagerV1ToV2(t *testing.T) {
 
 	// We'll start by creating our address manager backed by a temporary
 	// directory.
-	tempDir := t.TempDir()
+	tempDir, err := os.MkdirTemp("", "addrmgr")
+	if err != nil {
+		t.Fatalf("unable to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
 
 	addrMgr := New(tempDir, nil)
 

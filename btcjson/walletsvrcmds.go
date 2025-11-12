@@ -903,14 +903,9 @@ func (r *DescriptorRange) UnmarshalJSON(data []byte) error {
 		if len(v) != 2 {
 			return fmt.Errorf("expected [begin,end] integer range, got: %v", unmarshalled)
 		}
-		begin, ok1 := v[0].(float64)
-		end, ok2 := v[1].(float64)
-		if !ok1 || !ok2 {
-			return fmt.Errorf("expected both begin and end to be numbers, got: %v", v)
-		}
 		r.Value = []int{
-			int(begin),
-			int(end),
+			int(v[0].(float64)),
+			int(v[1].(float64)),
 		}
 	default:
 		return fmt.Errorf("invalid descriptor range value: %v", unmarshalled)
