@@ -5,6 +5,7 @@
 package rpcclient
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 
@@ -75,4 +76,42 @@ func (c *Client) RawRequestAsync(method string, params []json.RawMessage) Future
 // handled directly.
 func (c *Client) RawRequest(method string, params []json.RawMessage) (json.RawMessage, error) {
 	return c.RawRequestAsync(method, params).Receive()
+}
+
+// RawRequestAsyncWithContext is like RawRequestAsync but attaches the given context,
+// allowing cancellation of the underlying HTTP request.
+func (c *Client) RawRequestAsyncWithContext(ctx context.Context, method string, params []json.RawMessage) FutureRawResult {
+	if method == "" {
+		return newFutureError(errors.New("no method"))
+	}
+	if params == nil {
+		params = []json.RawMessage{}
+	}
+	id := c.NextID()
+	rawRequest := &btcjson.Request{
+		Jsonrpc: btcjson.RpcVersion1,
+		ID:      id,
+		Method:  method,
+		Params:  params,
+	}
+	marshalledJSON, err := json.Marshal(rawRequest)
+	if err != nil {
+		return newFutureError(err)
+	}
+	responseChan := make(chan *Response, 1)
+	jReq := &jsonRequest{
+		id:             id,
+		method:         method,
+		cmd:            nil,
+		marshalledJSON: marshalledJSON,
+		responseChan:   responseChan,
+		ctx:            ctx,
+	}
+	c.sendRequest(jReq)
+	return responseChan
+}
+
+// RawRequestWithContext is like RawRequest but accepts a context for cancellation.
+func (c *Client) RawRequestWithContext(ctx context.Context, method string, params []json.RawMessage) (json.RawMessage, error) {
+	return c.RawRequestAsyncWithContext(ctx, method, params).Receive()
 }

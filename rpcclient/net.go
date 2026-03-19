@@ -5,6 +5,7 @@
 package rpcclient
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/btcsuite/btcd/btcjson"
@@ -279,6 +280,12 @@ func (c *Client) GetNetworkInfoAsync() FutureGetNetworkInfoResult {
 // GetNetworkInfo returns data about the current network.
 func (c *Client) GetNetworkInfo() (*btcjson.GetNetworkInfoResult, error) {
 	return c.GetNetworkInfoAsync().Receive()
+}
+
+// GetNetworkInfoWithContext is like GetNetworkInfo but accepts a context for cancellation.
+func (c *Client) GetNetworkInfoWithContext(ctx context.Context) (*btcjson.GetNetworkInfoResult, error) {
+	cmd := btcjson.NewGetNetworkInfoCmd()
+	return FutureGetNetworkInfoResult(c.SendCmdWithContext(ctx, cmd)).Receive()
 }
 
 // FutureGetNodeAddressesResult is a future promise to deliver the result of a
