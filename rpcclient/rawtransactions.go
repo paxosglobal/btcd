@@ -6,6 +6,7 @@ package rpcclient
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -167,6 +168,16 @@ func (c *Client) GetRawTransactionVerbose(txHash *chainhash.Hash) (*btcjson.TxRa
 	return c.GetRawTransactionVerboseAsync(txHash).Receive()
 }
 
+// GetRawTransactionVerboseWithContext is like GetRawTransactionVerbose but accepts a context for cancellation.
+func (c *Client) GetRawTransactionVerboseWithContext(ctx context.Context, txHash *chainhash.Hash) (*btcjson.TxRawResult, error) {
+	hash := ""
+	if txHash != nil {
+		hash = txHash.String()
+	}
+	cmd := btcjson.NewGetRawTransactionCmd(hash, btcjson.Int(1))
+	return FutureGetRawTransactionVerboseResult(c.SendCmdWithContext(ctx, cmd)).Receive()
+}
+
 // FutureDecodeRawTransactionResult is a future promise to deliver the result
 // of a DecodeRawTransactionAsync RPC invocation (or an applicable error).
 type FutureDecodeRawTransactionResult chan *Response
@@ -311,6 +322,17 @@ func (c *Client) CreateRawTransaction(inputs []btcjson.TransactionInput,
 	return c.CreateRawTransactionAsync(inputs, amounts, lockTime).Receive()
 }
 
+// CreateRawTransactionWithContext is like CreateRawTransaction but accepts a context for cancellation.
+func (c *Client) CreateRawTransactionWithContext(ctx context.Context, inputs []btcjson.TransactionInput,
+	amounts map[btcutil.Address]btcutil.Amount, lockTime *int64) (*wire.MsgTx, error) {
+	convertedAmts := make(map[string]float64, len(amounts))
+	for addr, amount := range amounts {
+		convertedAmts[addr.String()] = amount.ToBTC()
+	}
+	cmd := btcjson.NewCreateRawTransactionCmd(inputs, convertedAmts, lockTime)
+	return FutureCreateRawTransactionResult(c.SendCmdWithContext(ctx, cmd)).Receive()
+}
+
 // FutureSendRawTransactionResult is a future promise to deliver the result
 // of a SendRawTransactionAsync RPC invocation (or an applicable error).
 type FutureSendRawTransactionResult chan *Response
@@ -382,6 +404,20 @@ func (c *Client) SendRawTransactionAsync(tx *wire.MsgTx, allowHighFees bool) Fut
 // then relay it to the network.
 func (c *Client) SendRawTransaction(tx *wire.MsgTx, allowHighFees bool) (*chainhash.Hash, error) {
 	return c.SendRawTransactionAsync(tx, allowHighFees).Receive()
+}
+
+// SendRawTransactionWithContext is like SendRawTransaction but accepts a context for cancellation.
+func (c *Client) SendRawTransactionWithContext(ctx context.Context, tx *wire.MsgTx, allowHighFees bool) (*chainhash.Hash, error) {
+	txHex := ""
+	if tx != nil {
+		buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
+		if err := tx.Serialize(buf); err != nil {
+			return nil, err
+		}
+		txHex = hex.EncodeToString(buf.Bytes())
+	}
+	cmd := btcjson.NewSendRawTransactionCmd(txHex, &allowHighFees)
+	return FutureSendRawTransactionResult(c.SendCmdWithContext(ctx, cmd)).Receive()
 }
 
 // FutureSignRawTransactionResult is a future promise to deliver the result

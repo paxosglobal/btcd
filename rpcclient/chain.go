@@ -7,6 +7,7 @@ package rpcclient
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 
@@ -214,6 +215,20 @@ func (c *Client) GetBlockVerbose(blockHash *chainhash.Hash) (*btcjson.GetBlockVe
 	return c.GetBlockVerboseAsync(blockHash).Receive()
 }
 
+// GetBlockVerboseWithContext is like GetBlockVerbose but accepts a context for cancellation.
+func (c *Client) GetBlockVerboseWithContext(ctx context.Context, blockHash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
+	hash := ""
+	if blockHash != nil {
+		hash = blockHash.String()
+	}
+	cmd := btcjson.NewGetBlockCmd(hash, btcjson.Int(1))
+	return FutureGetBlockVerboseResult{
+		client:   c,
+		hash:     hash,
+		Response: c.SendCmdWithContext(ctx, cmd),
+	}.Receive()
+}
+
 // FutureGetBlockVerboseTxResult is a future promise to deliver the result of a
 // GetBlockVerboseTxResult RPC invocation (or an applicable error).
 type FutureGetBlockVerboseTxResult struct {
@@ -271,6 +286,20 @@ func (c *Client) GetBlockVerboseTx(blockHash *chainhash.Hash) (*btcjson.GetBlock
 	return c.GetBlockVerboseTxAsync(blockHash).Receive()
 }
 
+// GetBlockVerboseTxWithContext is like GetBlockVerboseTx but accepts a context for cancellation.
+func (c *Client) GetBlockVerboseTxWithContext(ctx context.Context, blockHash *chainhash.Hash) (*btcjson.GetBlockVerboseTxResult, error) {
+	hash := ""
+	if blockHash != nil {
+		hash = blockHash.String()
+	}
+	cmd := btcjson.NewGetBlockCmd(hash, btcjson.Int(2))
+	return FutureGetBlockVerboseTxResult{
+		client:   c,
+		hash:     hash,
+		Response: c.SendCmdWithContext(ctx, cmd),
+	}.Receive()
+}
+
 // FutureGetBlockCountResult is a future promise to deliver the result of a
 // GetBlockCountAsync RPC invocation (or an applicable error).
 type FutureGetBlockCountResult chan *Response
@@ -305,6 +334,12 @@ func (c *Client) GetBlockCountAsync() FutureGetBlockCountResult {
 // GetBlockCount returns the number of blocks in the longest block chain.
 func (c *Client) GetBlockCount() (int64, error) {
 	return c.GetBlockCountAsync().Receive()
+}
+
+// GetBlockCountWithContext is like GetBlockCount but accepts a context for cancellation.
+func (c *Client) GetBlockCountWithContext(ctx context.Context) (int64, error) {
+	cmd := btcjson.NewGetBlockCountCmd()
+	return FutureGetBlockCountResult(c.SendCmdWithContext(ctx, cmd)).Receive()
 }
 
 // FutureGetChainTxStatsResult is a future promise to deliver the result of a
@@ -580,6 +615,12 @@ func (c *Client) GetBlockHashAsync(blockHeight int64) FutureGetBlockHashResult {
 // given height.
 func (c *Client) GetBlockHash(blockHeight int64) (*chainhash.Hash, error) {
 	return c.GetBlockHashAsync(blockHeight).Receive()
+}
+
+// GetBlockHashWithContext is like GetBlockHash but accepts a context for cancellation.
+func (c *Client) GetBlockHashWithContext(ctx context.Context, blockHeight int64) (*chainhash.Hash, error) {
+	cmd := btcjson.NewGetBlockHashCmd(blockHeight)
+	return FutureGetBlockHashResult(c.SendCmdWithContext(ctx, cmd)).Receive()
 }
 
 // FutureGetBlockHeaderResult is a future promise to deliver the result of a
@@ -923,6 +964,12 @@ func (c *Client) EstimateSmartFeeAsync(confTarget int64, mode *btcjson.EstimateS
 // EstimateSmartFee requests the server to estimate a fee level based on the given parameters.
 func (c *Client) EstimateSmartFee(confTarget int64, mode *btcjson.EstimateSmartFeeMode) (*btcjson.EstimateSmartFeeResult, error) {
 	return c.EstimateSmartFeeAsync(confTarget, mode).Receive()
+}
+
+// EstimateSmartFeeWithContext is like EstimateSmartFee but accepts a context for cancellation.
+func (c *Client) EstimateSmartFeeWithContext(ctx context.Context, confTarget int64, mode *btcjson.EstimateSmartFeeMode) (*btcjson.EstimateSmartFeeResult, error) {
+	cmd := btcjson.NewEstimateSmartFeeCmd(confTarget, mode)
+	return FutureEstimateSmartFeeResult(c.SendCmdWithContext(ctx, cmd)).Receive()
 }
 
 // FutureVerifyChainResult is a future promise to deliver the result of a

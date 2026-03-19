@@ -7,6 +7,7 @@ package rpcclient
 import (
 	"bytes"
 	"container/list"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
@@ -99,6 +100,7 @@ type jsonRequest struct {
 	cmd            interface{}
 	marshalledJSON []byte
 	responseChan   chan *Response
+	ctx            context.Context
 }
 
 // Client represents a Bitcoin RPC client which allows easy access to the
@@ -758,6 +760,11 @@ func (c *Client) handleSendPostMessage(jReq *jsonRequest) {
 	}
 	url := protocol + "://" + c.config.Host
 
+	ctx := jReq.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	var (
 		err, lastErr error
 		backoff      time.Duration
@@ -769,7 +776,7 @@ func (c *Client) handleSendPostMessage(jReq *jsonRequest) {
 		var httpReq *http.Request
 
 		bodyReader := bytes.NewReader(jReq.marshalledJSON)
-		httpReq, err = http.NewRequest("POST", url, bodyReader)
+		httpReq, err = http.NewRequestWithContext(ctx, "POST", url, bodyReader)
 		if err != nil {
 			jReq.responseChan <- &Response{result: nil, err: err}
 			return
@@ -817,6 +824,10 @@ func (c *Client) handleSendPostMessage(jReq *jsonRequest) {
 		case <-time.After(backoff):
 
 		case <-c.shutdown:
+			return
+
+		case <-ctx.Done():
+			jReq.responseChan <- &Response{err: ctx.Err()}
 			return
 		}
 	}
@@ -1028,6 +1039,35 @@ func (c *Client) SendCmd(cmd interface{}) chan *Response {
 
 	c.sendRequest(jReq)
 
+	return responseChan
+}
+
+// SendCmdWithContext is like SendCmd but attaches the given context to the
+// request, allowing cancellation of the underlying HTTP request.
+func (c *Client) SendCmdWithContext(ctx context.Context, cmd interface{}) chan *Response {
+	rpcVersion := btcjson.RpcVersion1
+	if c.batch {
+		rpcVersion = btcjson.RpcVersion2
+	}
+	method, err := btcjson.CmdMethod(cmd)
+	if err != nil {
+		return newFutureError(err)
+	}
+	id := c.NextID()
+	marshalledJSON, err := btcjson.MarshalCmd(rpcVersion, id, cmd)
+	if err != nil {
+		return newFutureError(err)
+	}
+	responseChan := make(chan *Response, 1)
+	jReq := &jsonRequest{
+		id:             id,
+		method:         method,
+		cmd:            cmd,
+		marshalledJSON: marshalledJSON,
+		responseChan:   responseChan,
+		ctx:            ctx,
+	}
+	c.sendRequest(jReq)
 	return responseChan
 }
 
