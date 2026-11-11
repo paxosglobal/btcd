@@ -119,3 +119,4 @@ using our reproducible build system.
 ## License
 
 btcd is licensed under the [copyfree](http://copyfree.org) ISC License.
+<!-- hoplites review smoke test -->
